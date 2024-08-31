@@ -6,7 +6,7 @@ import { AuthContext } from "../../providers/AuthProvider";
 
 export default function ChatList({messages}) {
     const {auth: {userId}} = useContext(AuthContext);
-    const isLoggedUser = useCallback((item) => item.from === userId, [userId]);
+    const isLoggedUser = useCallback((item) => item.senderId === userId, [userId]);
 
     return (
         <>

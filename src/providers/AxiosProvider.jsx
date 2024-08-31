@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import axios from "axios";
 
 import { AuthContext } from "./AuthProvider";
+import { enqueueSnackbar } from "notistack";
 
 
 export const AxiosContext = createContext();
@@ -19,18 +20,25 @@ export function AxiosProvider({ children }) {
 
 
     useEffect(() => {
-        axios.interceptors.request.reject
 
         const tokenInterceptor = axiosInstance.interceptors.request.use(function (config) {
             if(config.useAuth) config.headers['authorization'] = auth.token;
             return config;
-        })
+        }, 
+        // error => Promise.reject(error)
+        )
 
-        const unauthorizedInterceptor = axiosInstance.interceptors.response.use(null,function (response) {
-            if(response.status === 401) {
+        const unauthorizedInterceptor = axiosInstance.interceptors.response.use(null,function (error) {
+            let errorMessage = error.config.errorMsg ?? 'Ocurrió un error';
+
+            if(error.status === 401) {
+                errorMessage = 'Error de autorización'
                 setToken(null);
             }
-            return response;
+            enqueueSnackbar(errorMessage, { style: {background: '#f44336'} });
+
+            // return Promise.reject(new Error(error));
+            return error;
         });
 
         return () => {

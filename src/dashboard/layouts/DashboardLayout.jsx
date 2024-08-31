@@ -6,6 +6,7 @@ import { Outlet } from "react-router-dom";
 
 import ChatsDrawer from "../components/ChatsDrawer";
 import Header from "../components/Header";
+import { ChatProvider } from "../../providers/ChatProvider";
 
 
 export default function DashboardLayout() {
@@ -14,6 +15,7 @@ export default function DashboardLayout() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
+        <ChatProvider>
             <Box sx={{ 
                 width: '100vw', 
                 display: 'flex',
@@ -44,5 +46,6 @@ export default function DashboardLayout() {
                     <Outlet/>
                 </Box>
             </Box>
+        </ChatProvider>
     );
 }

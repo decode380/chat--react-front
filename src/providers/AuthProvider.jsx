@@ -25,7 +25,6 @@ export function AuthProvider ({children}) {
         else {
             localStorage.setItem('token', token);
             userId = jwtDecode(token).id
-            console.log(userId);
         }
 
         setAuth((currAuth) => ({

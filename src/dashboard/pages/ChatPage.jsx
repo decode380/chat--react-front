@@ -1,39 +1,72 @@
+import { useCallback, useContext, useEffect, useRef } from 'react';
+
 import SendIcon from '@mui/icons-material/Send';
 import { Grid, IconButton, TextField } from "@mui/material";
+import ObjectId from 'bson-objectid';
+import { useForm } from 'react-hook-form';
 
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { enqueueSnackbar } from 'notistack';
+import { AuthContext } from '../../providers/AuthProvider';
+import { AxiosContext } from '../../providers/AxiosProvider';
+import { ChatContext } from '../../providers/ChatProvider';
 import { SocketContext } from '../../providers/SocketProvider';
 import ChatList from '../components/ChatList';
-import { AxiosContext } from '../../providers/AxiosProvider';
-import { AuthContext } from '../../providers/AuthProvider';
 
 export default function ChatPage() {
 
-    const [messages, setMessages] = useState([]);
+    const { messages, setAllMessages, chatWith } = useContext(ChatContext);
 
     const { msgToReceive } = useContext(SocketContext);
     const { auth: {userId} } = useContext(AuthContext);
     const appAxios = useContext(AxiosContext);
 
+    const { register, handleSubmit, resetField } = useForm();
+    const endOfMessagesRef = useRef(null);
+
+
     useEffect(() => {
         if(!!msgToReceive) {
-            setMessages(currMessages => [...currMessages, msgToReceive]);
+            setAllMessages(currMessages => [...currMessages, msgToReceive]);
         }
     }, [msgToReceive]);
 
-    const onSendMessage = useCallback(async (evt) => {
-        evt.preventDefault();
 
-        const message = new FormData(evt.target).get('message');
-
-        const receiverId = '66ccadd73de545e53670a2f8';
-        setMessages(currMessages => [...currMessages, { message, from: userId }]);
-        await appAxios.post('/messages', { message, receiverId }, { useAuth: true });
+    useEffect(() => {
+        appAxios.get(`/messages/${userId}`, { useAuth: true })
+        .then(resp => {
+            setAllMessages(() => [...resp.data.messages]);
+        })
+        .catch(error => {
+            console.log({error});
+        });
     }, [userId]);
 
 
+    const onSendMessage = useCallback( async({message}) => {
+        const _id = ObjectId().toString();
+
+        setAllMessages(currMessages => [
+            ...currMessages, 
+            { message, senderId: userId, receiverId: chatWith, _id: _id }
+        ]);
+        resetField('message');
+
+        const resp = await appAxios.post('/messages', 
+            { message, receiverId: chatWith, _id: _id }, 
+            { useAuth: true, errorMsg: 'No se pudo enviar el mensaje' }
+        )
+
+        if(resp.status !== 200){
+            setAllMessages( currMessages => currMessages.filter(msg => msg._id !== _id) )
+        } 
+
+    }, [userId, chatWith]);
+
+
     useEffect(() => {
-        console.log({messages});
+        if (endOfMessagesRef.current) {
+            endOfMessagesRef.current.scrollTop = endOfMessagesRef.current.scrollHeight;
+        }
     }, [messages]);
 
 
@@ -54,6 +87,7 @@ export default function ChatPage() {
                 overflow='auto'
                 flexWrap='nowrap'
                 padding={3}
+                ref={endOfMessagesRef}
             >
                 <ChatList messages={messages}/>
             </Grid>
@@ -62,12 +96,11 @@ export default function ChatPage() {
                 item
                 component="form" 
                 display="flex"
-                onSubmit={onSendMessage}
+                onSubmit={handleSubmit(onSendMessage)}
             >
                 <TextField 
                     type='text'
-                    name='message'
-                    required
+                    {...register('message', { required: true })}
                     sx={{ 
                         flexGrow: 1,
                         '& .MuiOutlinedInput-root': {

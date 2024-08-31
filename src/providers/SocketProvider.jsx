@@ -68,7 +68,6 @@ export function SocketProvider ({children}) {
         });
 
         return () => {
-            console.log('disconnect')
             socket.disconnect();
         }
 

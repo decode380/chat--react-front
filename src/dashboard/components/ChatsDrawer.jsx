@@ -1,8 +1,12 @@
+import { useContext } from "react";
+
 import { Drawer, List, ListItemButton, Toolbar, Typography } from "@mui/material";
-import { blueGrey } from "@mui/material/colors";
+
+import { ChatContext } from "../../providers/ChatProvider";
 
 export default function ChatsDrawer({mobileOpen, setMobileOpen, bgcolor}) {
     const drawerWidth = 240;
+    const { setChatWith, users, chatWith } = useContext(ChatContext);
 
     const drawer = (
         <>
@@ -17,10 +21,19 @@ export default function ChatsDrawer({mobileOpen, setMobileOpen, bgcolor}) {
                 Usuarios conectados
             </Typography>
             {
-                ['Usuario 1', 'Usuario 2', 'Usuario 3'].map( user => (
-                    <List key={user}>
-                        <ListItemButton>
-                        {user}
+                users.map( user => (
+                    <List key={user._id}>
+                        <ListItemButton 
+                            onClick={() => {setChatWith(user._id)}} 
+                            selected={chatWith === user._id}
+                            sx={{
+                                '&.Mui-selected, &.Mui-selected:hover': {
+                                    backgroundColor: 'primary.main',
+                                    color: '#fff'
+                                }
+                            }}
+                        >
+                            {user.username}
                         </ListItemButton>
                     </List>
                 ))

@@ -6,6 +6,7 @@ import { RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './providers/AuthProvider';
 import { AxiosProvider } from './providers/AxiosProvider';
 import { router } from "./router/AppRouter";
+import { SnackbarProvider } from 'notistack';
 
 
 function App() {
@@ -22,8 +23,10 @@ function App() {
         <ThemeProvider theme={defaultTheme}>
             <AuthProvider>
                 <AxiosProvider>
-                    <CssBaseline/>
-                    <RouterProvider  router={router}/>
+                    <SnackbarProvider maxSnack={3} autoHideDuration={2000}>
+                        <CssBaseline/>
+                        <RouterProvider  router={router}/>
+                    </SnackbarProvider>
                 </AxiosProvider>
             </AuthProvider>
         </ThemeProvider>

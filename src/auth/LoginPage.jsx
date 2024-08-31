@@ -10,7 +10,7 @@ import { AxiosContext } from '../providers/AxiosProvider';
 
 export default function LoginPage() {
 
-    const { register, handleSubmit, formState: {errors} } = useForm({defaultValues: {username: 'user1', password: '1234'}});
+    const { register, handleSubmit, formState: {errors} } = useForm({defaultValues: {username: 'JohnDoe', password: '1234'}});
     const appAxios = useContext(AxiosContext); 
     const { setLoading, setToken } = useContext(AuthContext); 
 
